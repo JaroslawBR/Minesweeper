@@ -1,6 +1,7 @@
 package minesweeper
 
 import kotlin.random.Random
+import kotlin.system.exitProcess
 
 fun main() {
     Mines().seatMines()
@@ -12,6 +13,9 @@ class Mines(column: Int = 9, rows: Int = 9){
 
     private val warField = MutableList(minesColumn*minesRows)  { "." }
     private var fullSymbolField: MutableList<MutableList<Any>> = MutableList(minesRows ) { MutableList(minesColumn) {"."} }
+    private var finalField: MutableList<MutableList<Any>> = MutableList(minesRows ) { MutableList(minesColumn) {"."} }
+    private val setList: MutableList<Pair<Int, Int>> = mutableListOf()
+    private var minesLocation: List<Pair<Int, Int>> = listOf()
 
     private fun randomMines(): HashSet<Int> {
         print("How many mines do you want on the field? ")
@@ -62,7 +66,7 @@ class Mines(column: Int = 9, rows: Int = 9){
 
     private fun  minesAround() {
         val symbolField = formatField()
-        val minesLocation = formatField().mapIndexed { rowIndex, row ->
+        minesLocation = formatField().mapIndexed { rowIndex, row ->
             row.mapIndexedNotNull { columnIndex, mines ->
                 if (mines == "X") {
                     Pair(rowIndex, columnIndex)
@@ -98,10 +102,10 @@ class Mines(column: Int = 9, rows: Int = 9){
                 if (num == 0) str else num
             }
         }
-            val finalField = mergedList.chunked(minesRows).map { it.toMutableList() }.toMutableList()
-            printField(finalField)
+            val finalSymbolField = mergedList.chunked(minesRows).map { it.toMutableList() }.toMutableList()
+            printField(fullSymbolField)
             mergedNumAndSymbol1(numberList, symbolField)
-            play(finalField, minesLocation)
+            play(finalSymbolField)
 
 
     }
@@ -120,46 +124,51 @@ class Mines(column: Int = 9, rows: Int = 9){
         println("|")
     }
 
-    private fun play(finalField: MutableList<MutableList<Any>>, minesLocation: List<Pair<Int, Int>>) {
-        val setList: MutableList<Pair<Int, Int>> = mutableListOf()
+    private fun play(finalField: MutableList<MutableList<Any>>) {
+
         while (true) {
             print("Set/delete mines marks (x and y coordinates): ")
             try {
                 val input = readln().split(" ")
-                val firstCord = input[0].toInt()
-                val secondCord = input[1].toInt()
-                val task = input[2]
-                floodFill(secondCord, firstCord, fullSymbolField)
-                printField(fullSymbolField)
+                val firstCord = input[0].toInt() - 1
+                val secondCord = input[1].toInt() - 1
+                when (input[2]){
+                    "free" -> floodFill(secondCord, firstCord, fullSymbolField)
+                    "mine" -> {mark(secondCord, firstCord)}
+                }
                 println()
-                if (firstCord <= minesRows - 1 && secondCord <= minesColumn - 1) {
-                    if (finalField[secondCord][firstCord] !in 1..8) {
-                        if (finalField[secondCord][firstCord] == ".") {
-                            finalField[secondCord][firstCord] = "*"
-                            setList.add(secondCord to firstCord)
-                        } else {
-                            finalField[secondCord][firstCord] = "."
-                            setList.remove(secondCord to firstCord)
-                        }
-                        printField(finalField)
-                        if (setList.containsAll(minesLocation) && setList.size == minesLocation.size) {
-                            println("Congratulations! You found all the mines!")
-                            break
-                        }
-                    } else println("There is a number here!")
-                } else println("Off-board coordinates")
+                finalMerged()
+
             } catch (e: Exception) { println("Wrong Input!")
             }
         }
     }
 
+    private fun mark(secondCord: Int, firstCord: Int){
+        if (firstCord <= minesRows - 1 && secondCord <= minesColumn - 1) {
+            if (finalField[secondCord][firstCord] !in 1..8) {
+                if (finalField[secondCord][firstCord] == ".") {
+                    finalField[secondCord][firstCord] = "*"
+                    setList.add(secondCord to firstCord)
+                } else {
+                    finalField[secondCord][firstCord] = "."
+                    setList.remove(secondCord to firstCord)
+                }
+                printField(finalField)
+                if (setList.containsAll(minesLocation) && setList.size == minesLocation.size) {
+                    println("Congratulations! You found all the mines!")
+                    exitProcess(0)
+                }
+            } else println("There is a number here!")
+        } else println("Off-board coordinates")
+    }
+
     private fun floodFill(row: Int, column: Int, list: MutableList<MutableList<Any>>) {
-        val symbolField = list
         if (row < 0 || row >= minesColumn || column < 0 || column >= minesRows) {
             return
         }
-        if (symbolField[row][column] == "." || symbolField[row][column] == "*") {
-            symbolField[row][column] = "/"
+        if (list[row][column] == "." || list[row][column] == "*") {
+            list[row][column] = "/" //free spot
             floodFill(row - 1, column, list) // Up
             floodFill(row + 1, column, list) // Down
             floodFill(row, column - 1, list) // Left
@@ -177,7 +186,55 @@ class Mines(column: Int = 9, rows: Int = 9){
         fullSymbolField = mergedList.chunked(minesRows).map { it.toMutableList() }.toMutableList()
 
     }
+    private fun finalMerged() {
+        val freeSpace = fullSymbolField.mapIndexed { rowIndex, row ->
+            row.mapIndexedNotNull { columnIndex, mines ->
+                if (mines == "/") {
+                    Pair(rowIndex, columnIndex)
+                } else {
+                    null
+                }
+            }
+        }.flatten()
+
+        fun isIndexValid(rowIndex: Int, colIndex: Int, rows: Int, cols: Int): Boolean {
+            return rowIndex in 0 until rows && colIndex >= 0 && colIndex < cols
+        }
+        val lista2: MutableList<MutableList<Any>> = mutableListOf()
+
+        for (i in fullSymbolField.indices) {
+            val row: MutableList<Any> = mutableListOf()
+
+            for (j in fullSymbolField[i].indices) {
+                val element = fullSymbolField[i][j]
+
+                if (element == "/" || element == "*" || isIndexValid(i - 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j] == "/" ||
+                    isIndexValid(i + 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j] == "/" ||
+                    isIndexValid(i, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j - 1] == "/" ||
+                    isIndexValid(i, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j + 1] == "/"
+                ) {
+                    row.add(element)
+                } else {
+                    row.add(".")
+                }
+            }
+
+            lista2.add(row)
+        }
+        finalField.clear()
+        finalField = lista2
+        for (i in setList) {
+            if (finalField[i.second][i.first] == "." || finalField[i.second][i.first] == "X" ) finalField[i.second][i.first] = "*"
+        }
+        printField(finalField)
+
+
+
+
+    }
 }
+
+    
 
 
 
