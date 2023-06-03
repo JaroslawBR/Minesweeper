@@ -244,15 +244,6 @@ class Mines(column: Int = 9, rows: Int = 9){
         }
     }
 
-
-
-
-
-
-
-
-
-
     private fun mergedNumAndSymbol1(numberList: MutableList<MutableList<Int>>, symbolField: MutableList<MutableList<String>>){
         val mergedList: List<Any> = numberList.zip(symbolField).flatMap { (number, string) ->
             number.zip(string).map { (num, str) ->
@@ -263,112 +254,61 @@ class Mines(column: Int = 9, rows: Int = 9){
         fullSymbolField = mergedList.chunked(minesRows).map { it.toMutableList() }.toMutableList()
 
     }
-    /*
     private fun finalMerged() {
+            fun isIndexValid(rowIndex: Int, colIndex: Int, rows: Int, cols: Int): Boolean {
+                return rowIndex in 0 until rows && colIndex in 0 until cols
+            }
 
-        fun isIndexValid(rowIndex: Int, colIndex: Int, rows: Int, cols: Int): Boolean {
-            return rowIndex in 0 until rows && colIndex >= 0 && colIndex < cols
-        }
-        val lista2: MutableList<MutableList<Any>> = mutableListOf()
-
-        for (i in fullSymbolField.indices) {
-            val row: MutableList<Any> = mutableListOf()
-
-            for (j in fullSymbolField[i].indices) {
-                val element = fullSymbolField[i][j]
-
-                if (element == "/" || element == "*" || isIndexValid(i - 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j] == "/" ||
-                    isIndexValid(i + 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j] == "/" ||
-                    isIndexValid(i, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j - 1] == "/" ||
-                    isIndexValid(i, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j + 1] == "/"
-                ) {
-                    row.add(element)
-                } else {
-                    row.add(".")
+            fun fillDiagonal(rowIndex: Int, colIndex: Int, rows: Int, cols: Int) {
+                if (isIndexValid(rowIndex, colIndex, rows, cols) && finalField[rowIndex][colIndex] == ".") {
+                    finalField[rowIndex][colIndex] = "/"
+                    fillDiagonal(rowIndex - 1, colIndex - 1, rows, cols)
+                    fillDiagonal(rowIndex - 1, colIndex + 1, rows, cols)
+                    fillDiagonal(rowIndex + 1, colIndex - 1, rows, cols)
+                    fillDiagonal(rowIndex + 1, colIndex + 1, rows, cols)
                 }
             }
 
-            lista2.add(row)
-        }
-        finalField.clear()
-        finalField = lista2
-        for (i in setList) {
-            if (finalField[i.first][i.second] == "." || finalField[i.first][i.second] == "*") {
-                finalField[i.first][i.second] = "*"
-            } else setList.remove(i.first to i.second)
-        }
-        for (i in lostNumList) finalField[i.first][i.second] = fullSymbolField[i.first][i.second]
+            val mergedField: MutableList<MutableList<Any>> = mutableListOf()
 
-       if (fullSymbolField.flatten().count { it == "." } == 0 && finalField.flatten().count { it == "." } == minesLocation.size) {
-           printField(finalField)
-           println("Congratulations! You found all the mines!")
-           exitProcess(0)
-       }
+            for (i in fullSymbolField.indices) {
+                val row: MutableList<Any> = mutableListOf()
 
-        printField(finalField)
+                for (j in fullSymbolField[i].indices) {
+                    val element = fullSymbolField[i][j]
 
+                    if (element == "/" || element == "*" ||
+                        isIndexValid(i - 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j] == "/" ||
+                        isIndexValid(i + 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j] == "/" ||
+                        isIndexValid(i, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j - 1] == "/" ||
+                        isIndexValid(i, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j + 1] == "/" ||
+                        isIndexValid(i - 1, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j - 1] == "/" ||
+                        isIndexValid(i - 1, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j + 1] == "/" ||
+                        isIndexValid(i + 1, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j - 1] == "/" ||
+                        isIndexValid(i + 1, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j + 1] == "/"
+                    ) {
+                        row.add(element)
+                    } else if ((isIndexValid(i - 1, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j - 1] == "/") &&
+                        ((isIndexValid(i - 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j] != ".") ||
+                                (isIndexValid(i, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j - 1] != ".") ||
+                                (isIndexValid(i - 1, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j + 1] != ".") ||
+                                (isIndexValid(i + 1, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j - 1] != "."))
+                    ) {
+                        row.add(fullSymbolField[i][j - 1])
+                    } else {
+                        row.add(".")
+                    }
 
-
-
-
-    }
-
-     */
-
-    private fun finalMerged() {
-        fun isIndexValid(rowIndex: Int, colIndex: Int, rows: Int, cols: Int): Boolean {
-            return rowIndex in 0 until rows && colIndex in 0 until cols
-        }
-
-        fun fillDiagonal(rowIndex: Int, colIndex: Int, rows: Int, cols: Int) {
-            if (isIndexValid(rowIndex, colIndex, rows, cols) && finalField[rowIndex][colIndex] == ".") {
-                finalField[rowIndex][colIndex] = "/"
-                fillDiagonal(rowIndex - 1, colIndex - 1, rows, cols)
-                fillDiagonal(rowIndex - 1, colIndex + 1, rows, cols)
-                fillDiagonal(rowIndex + 1, colIndex - 1, rows, cols)
-                fillDiagonal(rowIndex + 1, colIndex + 1, rows, cols)
-            }
-        }
-
-        val mergedField: MutableList<MutableList<Any>> = mutableListOf()
-
-        for (i in fullSymbolField.indices) {
-            val row: MutableList<Any> = mutableListOf()
-
-            for (j in fullSymbolField[i].indices) {
-                val element = fullSymbolField[i][j]
-
-                if (element == "/" || element == "*" ||
-                    isIndexValid(i - 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j] == "/" ||
-                    isIndexValid(i + 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j] == "/" ||
-                    isIndexValid(i, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j - 1] == "/" ||
-                    isIndexValid(i, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j + 1] == "/" ||
-                    isIndexValid(i - 1, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j - 1] == "/" ||
-                    isIndexValid(i - 1, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j + 1] == "/" ||
-                    isIndexValid(i + 1, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j - 1] == "/" ||
-                    isIndexValid(i + 1, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j + 1] == "/"
-                ) {
-                    row.add(element)
-                } else if ((isIndexValid(i - 1, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j - 1] == "/") &&
-                    ((isIndexValid(i - 1, j, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j] != ".") ||
-                            (isIndexValid(i, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i][j - 1] != ".") ||
-                            (isIndexValid(i - 1, j + 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i - 1][j + 1] != ".") ||
-                            (isIndexValid(i + 1, j - 1, fullSymbolField.size, fullSymbolField[i].size) && fullSymbolField[i + 1][j - 1] != "."))
-                ) {
-                    row.add(fullSymbolField[i][j - 1])
-                } else {
-                    row.add(".")
+                    // Wypełnienie po przekątnych
+                    fillDiagonal(i - 1, j - 1, fullSymbolField.size, fullSymbolField[i].size)
+                    fillDiagonal(i - 1, j + 1, fullSymbolField.size, fullSymbolField[i].size)
+                    fillDiagonal(i + 1, j - 1, fullSymbolField.size, fullSymbolField[i].size)
+                    fillDiagonal(i + 1, j + 1, fullSymbolField.size, fullSymbolField[i].size)
                 }
 
-                // Wypełnienie po przekątnych
-                fillDiagonal(i - 1, j - 1, fullSymbolField.size, fullSymbolField[i].size)
-                fillDiagonal(i - 1, j + 1, fullSymbolField.size, fullSymbolField[i].size)
-                fillDiagonal(i + 1, j - 1, fullSymbolField.size, fullSymbolField[i].size)
-                fillDiagonal(i + 1, j + 1, fullSymbolField.size, fullSymbolField[i].size)
+                mergedField.add(row)
             }
 
-            mergedField.add(row)
-        }
 
         finalField.clear()
         finalField = mergedField
@@ -394,10 +334,6 @@ class Mines(column: Int = 9, rows: Int = 9){
     }
 
 
-
-
-
-
     private fun lose(){
         for (i in minesLocation) {
             finalField[i.first][i.second] = "X"
@@ -408,14 +344,7 @@ class Mines(column: Int = 9, rows: Int = 9){
 
     }
 }
-/*
-for (i in setList) {
-    if (finalField[i.first][i.second] == "." || finalField[i.first][i.second] == "*") {
-        finalField[i.first][i.second] = "*"
-    } else setList.remove(i.first to i.second)
-}
 
- */
     
 
 
